@@ -1,0 +1,33 @@
+{
+    "name": "@webextensions/common",
+    "version": "0.0.0",
+    "private": true,
+    "license": "MPL-2.0",
+    "repository": "https://gitlab.com/Marnes/copy-selected-links.git",
+    "author": "Marnes <leaumar@mailbox.org>",
+    "main": "src/index.ts",
+    "scripts": {
+        "build": "yarn clean && yarn tsc && yarn eslint",
+        "clean": "rimraf dist",
+        "eslint": "eslint \"src/**/*.ts\" --cache --cache-location dist/eslint/",
+        "eslint:fix": "eslint \"src/**/*.ts\" --cache --cache-location dist/eslint/ --fix",
+        "tsc": "tsc"
+    },
+    "dependencies": {
+        "tslib": "^2.5.3",
+        "type-fest": "^3.12.0"
+    },
+    "devDependencies": {
+        "@trivago/prettier-plugin-sort-imports": "^4.1.1",
+        "@typescript-eslint/eslint-plugin": "^5.60.0",
+        "@typescript-eslint/parser": "^5.60.0",
+        "eslint": "^8.43.0",
+        "eslint-plugin-import": "^2.27.5",
+        "eslint-plugin-prettier": "^4.2.1",
+        "prettier": "^2.8.8",
+        "prettier-plugin-package": "^1.3.1",
+        "rimraf": "^5.0.1",
+        "typescript": "^5.1.3"
+    },
+    "types": "src/index.ts"
+}

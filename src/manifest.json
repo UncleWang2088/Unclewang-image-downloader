@@ -1,0 +1,65 @@
+{
+    "manifest_version": 3,
+    "browser_specific_settings": {
+        "gecko": {
+            "id": "jid1-xgtdawe3yyUeBQ@jetpack"
+        }
+    },
+    "name": "王叔图片下载",
+    "short_name": "王叔下载",
+    "version": "7.2.4",
+    "description": "双击图片快速下载，可自选保存目录。王叔专用版。",
+    "author": "leaumar@mailbox.org",
+    "icons": {
+        "16": "images/icon-16.png",
+        "48": "images/icon-48.png",
+        "128": "images/icon-128.png"
+    },
+    "options_ui": {
+        "page": "options.html",
+        "browser_style": false,
+        "open_in_tab": false
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content.ts"],
+            "css": ["content.scss"],
+            "run_at": "document_end",
+            "all_frames": true
+        }
+    ],
+    "background": {
+        "service_worker": "background.ts",
+        "type": "module"
+    },
+    "permissions": [
+        "notifications",
+        "storage",
+        "tabs",
+        "downloads",
+        "downloads.open",
+        "contextMenus"
+    ],
+    "host_permissions": ["<all_urls>"],
+    "web_accessible_resources": [
+        {
+            "resources": ["images/download_on_*.png", "images/download_off_*.png"],
+            "matches": ["<all_urls>"]
+        }
+    ],
+    "commands": {
+        "download-focused": {
+            "suggested_key": {
+                "default": "Alt+Shift+D"
+            },
+            "description": "Download the hovered image."
+        }
+    },
+    "action": {
+        "default_icon": {
+            "16": "images/reset-16.png"
+        },
+        "default_title": "重置 %counter% 计数器"
+    }
+}

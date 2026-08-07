@@ -1,0 +1,49 @@
+@import "~modern-normalize";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+label {
+    font-weight: bold;
+}
+
+input[type="number"],
+input[type="text"] {
+    &:valid {
+        border-color: green !important;
+    }
+
+    &:invalid {
+        border-color: red !important;
+    }
+}
+
+textarea {
+    width: 100%;
+}
+
+#positionPicker {
+    border-collapse: collapse;
+
+    .image {
+        background-color: grey;
+    }
+
+    $horizontal-padding: 6em;
+    $vertical-padding: 3em;
+
+    td {
+        padding: 1em;
+
+        &:nth-child(3) {
+            padding-left: $horizontal-padding;
+            padding-right: $horizontal-padding;
+        }
+    }
+
+    tr:nth-child(3) td {
+        padding-top: $vertical-padding;
+        padding-bottom: $vertical-padding;
+    }
+}

@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="stylesheet" href="options.scss" />
+        <script src="options.ts" defer type="module"></script>
+        <title>王叔图片下载 - 选项</title>
+    </head>
+
+    <body class="p-1">
+        <section class="my-2">
+            <strong>王叔图片下载</strong>
+            <span class="block text-blue-400" id="extensionVersion"
+                >版本加载中…</span
+            >
+        </section>
+
+        <fieldset class="my-2">
+            <legend>保存位置</legend>
+
+            <section class="my-1">
+                <label>
+                    <input type="checkbox" id="askWhereToSave" />
+                    双击图片后弹出保存位置选择器
+                </label>
+                <span class="block">
+                    关闭后，双击图片直接下载到默认下载文件夹，不再询问。
+                </span>
+            </section>
+
+            <section class="my-1">
+                <label for="quickFolders" class="block">
+                    常用目录（每行一个，出现在保存位置下拉菜单里；最近使用过的目录会自动排在前面）
+                </label>
+                <textarea
+                    id="quickFolders"
+                    rows="4"
+                    placeholder="蜜桃研究所/素材&#10;剑星AI/参考图&#10;RIFT BLADE/分镜"
+                ></textarea>
+            </section>
+        </fieldset>
+
+        <section class="my-2">
+            <label>
+                <input type="checkbox" id="notify" />
+                下载完成后通知
+            </label>
+            <span class="block">
+                通知样式与外观在不同浏览器和操作系统上略有差异。
+            </span>
+        </section>
+
+        <section class="my-2">
+            <label>
+                <input type="checkbox" id="greyOut" />
+                下载过程中将图片置灰
+            </label>
+        </section>
+
+        <section class="my-2">
+            <strong>
+                <span class="text-xl text-blue-400">🛈</span>
+                悬停热键设置？
+            </strong>
+            <br />
+            悬停热键需要在浏览器的扩展快捷键管理里配置。
+        </section>
+
+        <fieldset class="my-2">
+            <legend>右键菜单</legend>
+
+            <section class="my-1">
+                <label>
+                    <input type="checkbox" id="enableImageContextMenu" />
+                    图片右键菜单显示「下载图片」
+                </label>
+            </section>
+
+            <section class="my-1">
+                <label>
+                    <input type="checkbox" id="enableSelectionContextMenu" />
+                    选区右键菜单显示「下载选中图片」
+                </label>
+            </section>
+        </fieldset>
+
+        <fieldset class="my-2">
+            <legend>限制</legend>
+
+            <section class="my-1">
+                <label>
+                    <input type="checkbox" id="requireShift" />
+                    需按住 Shift 键
+                </label>
+                <span class="block">不影响悬停热键。</span>
+            </section>
+
+            <section class="my-1">
+                <label for="minimumImageSize" class="block">
+                    忽略小于以下尺寸的图片
+                </label>
+                <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    id="minimumImageSize"
+                    placeholder="100"
+                    required="required"
+                />
+                像素
+                <span class="block">不影响悬停热键。</span>
+            </section>
+
+            <section class="mt-1">
+                <label for="excludedPageDomains" class="block">
+                    忽略以下页面域名
+                </label>
+                <textarea
+                    id="excludedPageDomains"
+                    rows="3"
+                    placeholder="example.com&#10;*.example.net&#10;localhost"
+                ></textarea>
+            </section>
+
+            <section class="mb-1" id="invertExcludedPageDomains">
+                <label>
+                    <input
+                        type="radio"
+                        name="invertExcludedPageDomains"
+                        value="false"
+                        id="invertExcludedPageDomainsFalse"
+                    />
+                    黑名单（忽略列表中的域名）
+                </label>
+                <label>
+                    <input
+                        type="radio"
+                        name="invertExcludedPageDomains"
+                        value="true"
+                    />
+                    白名单（仅允许列表中的域名）
+                </label>
+            </section>
+
+            <section class="mt-1">
+                <label for="excludedSourceDomains" class="block">
+                    忽略以下图片源域名
+                </label>
+                <textarea
+                    id="excludedSourceDomains"
+                    rows="3"
+                    placeholder="example.com&#10;*.example.net&#10;localhost"
+                ></textarea>
+            </section>
+
+            <section class="mb-1" id="invertExcludedSourceDomains">
+                <label>
+                    <input
+                        type="radio"
+                        name="invertExcludedSourceDomains"
+                        value="false"
+                        id="invertExcludedSourceDomainsFalse"
+                    />
+                    黑名单（忽略列表中的域名）
+                </label>
+                <label>
+                    <input
+                        type="radio"
+                        name="invertExcludedSourceDomains"
+                        value="true"
+                    />
+                    白名单（仅允许列表中的域名）
+                </label>
+            </section>
+
+            <ul>
+                <li>* 匹配一级域名（example.*）</li>
+                <li>域名必须完全匹配，不支持部分匹配</li>
+            </ul>
+        </fieldset>
+
+        <fieldset class="my-2">
+            <legend>悬停按钮</legend>
+
+            <section class="my-1">
+                <label>
+                    <input type="checkbox" id="singleClickEnabled" />
+                    启用悬停按钮
+                </label>
+            </section>
+
+            <section class="my-1">
+                <label>
+                    <input type="checkbox" id="supportDragDrop" />
+                    启用拖拽到按钮下载
+                </label>
+            </section>
+
+            <section class="my-1">
+                <label for="oneClickStyle-alt1">按钮样式</label>
+                <div id="oneClickStyles">
+                    <label>
+                        <input
+                            type="radio"
+                            name="oneClickStyle"
+                            value="original"
+                            id="oneClickStyle-original"
+                        />
+                        原版
+                    </label>
+                    <label>
+                        <input
+                            type="radio"
+                            name="oneClickStyle"
+                            value="alt1"
+                            id="oneClickStyle-alt1"
+                        />
+                        备选
+                    </label>
+                </div>
+            </section>
+
+            <section class="my-1">
+                <label for="buttonSize" class="block">按钮大小</label>
+                <input
+                    type="number"
+                    min="8"
+                    max="512"
+                    step="1"
+                    id="buttonSize"
+                    placeholder="48"
+                    required
+                />
+                像素
+            </section>
+
+            <section class="my-1">
+                <label for="buttonOpacity" class="block">按钮透明度</label>
+                <input
+                    type="range"
+                    min="10"
+                    max="100"
+                    step="1"
+                    id="buttonOpacity"
+                />
+                <output for="buttonOpacity" id="buttonOpacityOutput"></output>
+                %
+            </section>
+
+            <section class="my-1">
+                <img
+                    id="oneClickStyle-preview"
+                    src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
+                    alt="悬停按钮预览"
+                />
+            </section>
+
+            <section class="my-1">
+                <label>
+                    <input type="checkbox" id="persist" />
+                    鼠标离开后保留按钮
+                </label>
+            </section>
+
+            <section class="my-1">
+                <label for="defaultPosition">按钮位置</label>
+                <table id="positionPicker" class="block">
+                    <tbody>
+                        <tr>
+                            <td></td>
+                            <td>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="1_2"
+                                    />
+                                </label>
+                            </td>
+                            <td>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="1"
+                                    />
+                                </label>
+                            </td>
+                            <td>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="2_1"
+                                    />
+                                </label>
+                            </td>
+                            <td></td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="1_3"
+                                    />
+                                </label>
+                            </td>
+                            <td class="image">
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="1_4"
+                                    />
+                                </label>
+                            </td>
+                            <td class="image">
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="2"
+                                    />
+                                </label>
+                            </td>
+                            <td class="image">
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="2_3"
+                                        id="defaultPosition"
+                                    />
+                                </label>
+                            </td>
+                            <td>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="2_4"
+                                    />
+                                </label>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="3"
+                                    />
+                                </label>
+                            </td>
+                            <td class="image">
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="4"
+                                    />
+                                </label>
+                            </td>
+                            <td class="image">
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="5"
+                                    />
+                                </label>
+                            </td>
+                            <td class="image">
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="6"
+                                    />
+                                </label>
+                            </td>
+                            <td>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="7"
+                                    />
+                                </label>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="3_1"
+                                    />
+                                </label>
+                            </td>
+                            <td class="image">
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="3_2"
+                                    />
+                                </label>
+                            </td>
+                            <td class="image">
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="8"
+                                    />
+                                </label>
+                            </td>
+                            <td class="image">
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="4_1"
+                                    />
+                                </label>
+                            </td>
+                            <td>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="4_2"
+                                    />
+                                </label>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td></td>
+                            <td>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="3_4"
+                                    />
+                                </label>
+                            </td>
+                            <td>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="9"
+                                    />
+                                </label>
+                            </td>
+                            <td>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="position"
+                                        value="4_3"
+                                    />
+                                </label>
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+        </fieldset>
+
+        <fieldset class="my-2" id="renamingSettings">
+            <legend>文件命名</legend>
+
+            <section id="renamingSettingsNotSupported" class="hidden">
+                <strong>⚠️ 当前浏览器不支持！</strong>
+                该功能依赖浏览器对 download API 的扩展支持。
+                Firefox 请关注
+                <a href="https://bugzilla.mozilla.org/show_bug.cgi?id=1245652">
+                    bugzilla
+                </a>
+                。
+            </section>
+
+            <section class="my-2">
+                <label>
+                    <input type="checkbox" id="enableRename" />
+                    启用文件重命名
+                </label>
+            </section>
+
+            <section>
+                实时预览：
+                <ul>
+                    <li>
+                        <output
+                            for="fileNamePattern counterPadding counterStart counterStep"
+                            id="previewFileNamePattern1"
+                        ></output>
+                    </li>
+                    <li>
+                        <output
+                            for="fileNamePattern counterPadding counterStart counterStep"
+                            id="previewFileNamePattern2"
+                        ></output>
+                    </li>
+                </ul>
+            </section>
+
+            <section class="my-2">
+                <label>
+                    文件名模板
+                    <input
+                        class="w-full"
+                        type="text"
+                        id="fileNamePattern"
+                        placeholder="%pagedomain%/%imagepath%/%original%"
+                    />
+                </label>
+
+                <dl>
+                    <dt>%counter%</dt>
+                    <dd>自增计数器，每次浏览器会话从起始值开始。</dd>
+
+                    <dt>%pagedomain%</dt>
+                    <dd>页面域名</dd>
+                    <dt>%pagedirs%</dt>
+                    <dd>页面的目录路径</dd>
+                    <dt>%pagepath%</dt>
+                    <dd>
+                        页面路径，
+                        <code>/</code>
+                        替换为
+                        <code>.</code>
+                    </dd>
+
+                    <dt>%imagedomain%</dt>
+                    <dd>图片源域名</dd>
+                    <dt>%imagedirs%</dt>
+                    <dd>图片的目录路径</dd>
+                    <dt>%imagepath%</dt>
+                    <dd>
+                        图片路径，
+                        <code>/</code>
+                        替换为
+                        <code>.</code>
+                    </dd>
+
+                    <dt>%y%</dt>
+                    <dd>年</dd>
+                    <dt>%M%</dt>
+                    <dd>月（1–12）</dd>
+                    <dt>%d%</dt>
+                    <dd>日（1–31）</dd>
+                    <dt>%h%</dt>
+                    <dd>时（0–23）</dd>
+                    <dt>%m%</dt>
+                    <dd>分（0–59）</dd>
+                    <dt>%s%</dt>
+                    <dd>秒（0–59）</dd>
+                    <dt>%ms%</dt>
+                    <dd>毫秒（0–999）</dd>
+
+                    <dt>%original%</dt>
+                    <dd>原始文件名</dd>
+                    <dt>%title%</dt>
+                    <dd>
+                        页面标题。注意：
+                        <code>/</code>
+                        会创建子目录！
+                    </dd>
+                </dl>
+
+                <div
+                    id="counterSettings"
+                    class="flex flex-wrap justify-between"
+                >
+                    <label class="block">
+                        <span class="block">计数器起始值</span>
+                        <input
+                            type="number"
+                            min="0"
+                            id="counterStart"
+                            placeholder="1"
+                            required
+                        />
+                    </label>
+                    <label>
+                        <span class="block">计数器步长</span>
+                        <input
+                            type="number"
+                            min="1"
+                            id="counterStep"
+                            placeholder="1"
+                            required
+                        />
+                    </label>
+                    <label>
+                        <span class="block">
+                            计数器位数（不足补 0）
+                        </span>
+                        <input
+                            type="number"
+                            min="1"
+                            id="counterPadding"
+                            placeholder="1"
+                            required
+                        />
+                    </label>
+                </div>
+
+                <div class="my-2">
+                    <label class="block">
+                        <input
+                            type="checkbox"
+                            id="enableResetCounterContextMenu"
+                        />
+                        右键菜单显示「重置 %counter%」
+                    </label>
+
+                    <strong>
+                        <span class="text-xl text-blue-400">🛈</span>
+                    </strong>
+                    也可以点击工具栏按钮重置 %counter%。
+                </div>
+            </section>
+        </fieldset>
+
+        <fieldset class="my-2">
+            <legend>高级选项</legend>
+            <span>
+                以下选项与普通选项不同，设置后需要重新载入页面才生效。
+            </span>
+
+            <section class="my-2" id="conflictActions">
+                <label for="uniquify">文件名冲突时</label>
+                <div>
+                    <label>
+                        <input
+                            type="radio"
+                            name="conflictAction"
+                            value="uniquify"
+                            id="uniquify"
+                        />
+                        自动重命名（加数字后缀）
+                    </label>
+                    （通常会产生形如 image (1).jpg 的结果）
+                </div>
+                <div>
+                    <label>
+                        <input
+                            type="radio"
+                            name="conflictAction"
+                            value="prompt"
+                        />
+                        弹出「另存为」对话框
+                    </label>
+                    （⚠️ Firefox 不支持，详见
+                    <a
+                        href="https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/downloads/FilenameConflictAction#Browser_compatibility"
+                    >
+                        MDN
+                    </a>
+                    ）
+                </div>
+                <div>
+                    <label>
+                        <input
+                            type="radio"
+                            name="conflictAction"
+                            value="overwrite"
+                        />
+                        覆盖已有文件
+                    </label>
+                    （⚠️ 慎用，会覆盖同名文件！）
+                </div>
+            </section>
+
+            <section class="my-2">
+                <label for="doubleLeft">鼠标触发方式</label>
+                <div id="clickTypes" class="flex flex-col">
+                    <label>
+                        <input type="radio" name="clickType" value="none" />
+                        禁用
+                    </label>
+                    <label>
+                        <input
+                            type="radio"
+                            name="clickType"
+                            value="singleLeft"
+                        />
+                        单击左键
+                    </label>
+                    <label>
+                        <input
+                            type="radio"
+                            name="clickType"
+                            value="doubleLeft"
+                            id="doubleLeft"
+                        />
+                        双击左键
+                    </label>
+                    <label>
+                        <input
+                            type="radio"
+                            name="clickType"
+                            value="singleRight"
+                        />
+                        单击右键
+                    </label>
+                    <div class="flex">
+                        <label class="flex-auto">
+                            <input
+                                type="radio"
+                                name="clickType"
+                                value="doubleRight"
+                            />
+                            双击右键
+                        </label>
+                        <label class="flex-auto">
+                            <input
+                                type="number"
+                                min="0"
+                                max="1000"
+                                step="1"
+                                required="required"
+                                id="doubleRightClickTiming"
+                            />
+                            毫秒
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <section class="my-2">
+                <label>
+                    <input type="checkbox" id="aggressiveCursorTracking" />
+                    激进模式追踪光标
+                </label>
+                <span class="block">
+                    可提高图片识别成功率。仅对悬停热键生效。
+                </span>
+            </section>
+        </fieldset>
+    </body>
+</html>

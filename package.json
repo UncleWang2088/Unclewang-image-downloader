@@ -1,0 +1,47 @@
+{
+    "name": "wangshu-image-downloader",
+    "version": "7.2.4",
+    "private": true,
+    "license": "MPL-2.0",
+    "repository": "https://github.com/UncleWang2088/wangshu-image-downloader.git",
+    "author": "WangShu",
+    "scripts": {
+        "build": "yarn clean && yarn tsc && yarn eslint && yarn parcel:build && yarn webext:lint && yarn webext:build",
+        "clean": "rimraf dist",
+        "eslint": "eslint \"src/**/*.ts\" --cache --cache-location dist/eslint/",
+        "eslint:fix": "eslint \"src/**/*.ts\" --cache --cache-location dist/eslint/ --fix",
+        "parcel:build": "parcel build src/manifest.json src/images/error-128.png --dist-dir dist/parcel",
+        "parcel:watch": "parcel watch src/manifest.json src/images/error-128.png --dist-dir dist/parcel --no-autoinstall --no-hmr",
+        "start": "web-ext run",
+        "start:chrome": "web-ext run -t chromium",
+        "tsc": "tsc -b",
+        "webext:build": "web-ext build",
+        "webext:lint": "web-ext lint"
+    },
+    "dependencies": {
+        "@webextensions/common": "file:./libs/common",
+        "fast-equals": "^5.0.1",
+        "modern-normalize": "^2.0.0",
+        "ts-essentials": "^9.3.2",
+        "tslib": "^2.5.3",
+        "type-fest": "^3.12.0",
+        "webextension-polyfill": "^0.10.0"
+    },
+    "devDependencies": {
+        "@trivago/prettier-plugin-sort-imports": "^4.1.1",
+        "@types/webextension-polyfill": "^0.10.0",
+        "@typescript-eslint/eslint-plugin": "^5.60.0",
+        "@typescript-eslint/parser": "^5.60.0",
+        "eslint": "^8.43.0",
+        "eslint-plugin-import": "^2.27.5",
+        "eslint-plugin-prettier": "^4.2.1",
+        "parcel": "^2.9.2",
+        "postcss": "^8.4.24",
+        "prettier": "^2.8.8",
+        "prettier-plugin-package": "^1.3.1",
+        "rimraf": "^5.0.1",
+        "tailwindcss": "^3.3.2",
+        "typescript": "^5.1.3",
+        "web-ext": "^7.6.2"
+    }
+}

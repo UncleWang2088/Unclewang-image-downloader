@@ -1,0 +1,12 @@
+#singleclick-image-downloader {
+    position: fixed;
+    cursor: pointer;
+    z-index: 2147483647;
+
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+}
+
+img.doubleclick-image-downloader-active {
+    opacity: 0.5 !important;
+}
