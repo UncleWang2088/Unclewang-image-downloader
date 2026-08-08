@@ -4,10 +4,17 @@ import {
     finished,
     load,
     pushFolderHistory,
+    relativizeFolder,
     renameFunctionally,
 } from "../common";
 import { notifyCompletion, notifyFailure } from "./notifications";
-import { TabAndFrameId, downloads, tickCounter } from "./state";
+import {
+    TabAndFrameId,
+    getDownload,
+    registerDownload,
+    tickCounter,
+    unregisterDownload,
+} from "./state";
 import browser, { Downloads, Tabs } from "webextension-polyfill";
 
 function indicateFinished(
@@ -15,7 +22,7 @@ function indicateFinished(
     delta: Downloads.OnChangedDownloadDeltaType
 ): void {
     const [tabId, frameId] = source;
-    downloads.delete(delta.id);
+    void unregisterDownload(delta.id);
     browser.tabs
         .sendMessage(tabId, finished(delta.id), {
             frameId: frameId ?? undefined,
@@ -35,7 +42,8 @@ function folderOf(filename: string): string | null {
 async function handleEndOfDownload(
     delta: Downloads.OnChangedDownloadDeltaType
 ): Promise<void> {
-    const source = downloads.get(delta.id);
+    // survives service-worker sleeps via the persisted registry
+    const source = await getDownload(delta.id);
     if (source == null) {
         // not a download from this addon!
         return;
@@ -55,7 +63,13 @@ async function handleEndOfDownload(
             if (downloadItem != null && source[2] == null) {
                 const folder = folderOf(downloadItem.filename);
                 if (folder != null) {
-                    await pushFolderHistory(folder);
+                    // remember as a relative path when possible so the next
+                    // download goes straight there without the save-as dialog;
+                    // the default download dir itself is not worth remembering
+                    const relative = await relativizeFolder(folder);
+                    if (relative.length > 0) {
+                        await pushFolderHistory(relative);
+                    }
                 }
             }
 
@@ -90,44 +104,54 @@ function determiningFilename(
     downloadItem: Downloads.DownloadItem,
     suggest: SuggestionCallback
 ): true | undefined {
-    const downloadData = downloads.get(downloadItem.id);
-    if (downloadData == null) {
-        // not a download from this addon!
-        return;
-    }
-
-    load()
-        .then(async (settings) => {
-            if (settings.enableRename) {
-                const [tabId, , folder] = downloadData;
-                const tab = await browser.tabs.get(tabId);
-                // keep a user-chosen folder prefix out of the rename pattern
-                const filePart =
-                    folder != null && folder.length > 0
-                        ? downloadItem.filename.substring(folder.length + 1)
-                        : downloadItem.filename;
-                const counter = await tickCounter(settings);
-                const renamed = renameFunctionally(filePart, () => counter, {
-                    imageUrl: new URL(downloadItem.url),
-                    settings,
-                    tab,
-                });
-
-                suggest({
-                    conflictAction: settings.onFilenameConflict,
-                    filename:
-                        folder != null && folder.length > 0
-                            ? `${folder}/${renamed}`
-                            : renamed,
-                });
-            } else {
+    getDownload(downloadItem.id)
+        .then((downloadData) => {
+            if (downloadData == null) {
+                // not a download from this addon!
                 suggest();
+                return;
             }
+
+            load()
+                .then(async (settings) => {
+                    if (settings.enableRename) {
+                        const [tabId, , folder] = downloadData;
+                        const tab = await browser.tabs.get(tabId);
+                        // keep a user-chosen folder prefix out of the rename pattern
+                        const filePart =
+                            folder != null && folder.length > 0
+                                ? downloadItem.filename.substring(
+                                      folder.length + 1
+                                  )
+                                : downloadItem.filename;
+                        const counter = await tickCounter(settings);
+                        const renamed = renameFunctionally(
+                            filePart,
+                            () => counter,
+                            {
+                                imageUrl: new URL(downloadItem.url),
+                                settings,
+                                tab,
+                            }
+                        );
+
+                        suggest({
+                            conflictAction: settings.onFilenameConflict,
+                            filename:
+                                folder != null && folder.length > 0
+                                    ? `${folder}/${renamed}`
+                                    : renamed,
+                        });
+                    } else {
+                        suggest();
+                    }
+                })
+                .catch((error: Error) => {
+                    console.error(error);
+                    suggest();
+                });
         })
-        .catch((error: Error) => {
-            console.error(error);
-            suggest();
-        });
+        .catch(console.error);
 
     return true;
 }
@@ -165,7 +189,7 @@ export async function startDownload(
     if (tab.id == null) {
         throw new Error("tab without id?");
     }
-    downloads.set(downloadId, [tab.id, frameId, folder]);
+    await registerDownload(downloadId, [tab.id, frameId, folder]);
 
     return downloadId;
 }

@@ -13,6 +13,7 @@ const topics = {
     downloadFinished: "downloadFinished",
     downloadRequested: "downloadRequested",
     downloadStarted: "downloadStarted",
+    getDefaultDownloadDir: "getDefaultDownloadDir",
 } as const;
 
 export type DownloadChangedMessage = {
@@ -67,11 +68,24 @@ export function hotkeyTriggered(imageFound: boolean): TriggeredMessage {
     };
 }
 
+export type DefaultDirMessage = {
+    subject: typeof topics.getDefaultDownloadDir;
+    dir: string | null;
+};
+
+export function defaultDirMessage(dir: string | null): DefaultDirMessage {
+    return {
+        dir,
+        subject: topics.getDefaultDownloadDir,
+    };
+}
+
 //
 
 const subjects = [...signals, ...Object.values(topics)] as string[];
 
 export type Message =
+    | DefaultDirMessage
     | DownloadChangedMessage
     | RequestedMessage
     | ReturnType<typeof signal>

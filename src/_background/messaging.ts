@@ -1,12 +1,23 @@
-import { DownloadChangedMessage, Message, asMessage, started } from "../common";
+import {
+    DefaultDirMessage,
+    DownloadChangedMessage,
+    Message,
+    asMessage,
+    defaultDirMessage,
+    getDefaultDownloadDir,
+    started,
+} from "../common";
 import { startDownload } from "./downloads";
 import browser, { Runtime } from "webextension-polyfill";
 
 async function reactToMessage(
     msg: Message,
     sender: Runtime.MessageSender
-): Promise<DownloadChangedMessage> {
+): Promise<DefaultDirMessage | DownloadChangedMessage> {
     switch (msg.subject) {
+        case "getDefaultDownloadDir":
+            return defaultDirMessage(await getDefaultDownloadDir());
+
         case "downloadRequested": {
             if (sender.tab == null) {
                 throw new Error("starting a download headlessly?");

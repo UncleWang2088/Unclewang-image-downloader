@@ -1,4 +1,8 @@
-import { type Settings, readFolderHistory } from "../../common";
+import {
+    type Settings,
+    readFolderHistory,
+    relativizeFolder,
+} from "../../common";
 import { CSS_IDS, insertPickerCss } from "./style";
 
 const { OVERLAY_ID, PANEL_ID } = CSS_IDS;
@@ -11,17 +15,14 @@ let activeSettle: ((choice: PickerChoice | null) => void) | null = null;
 // value used for the "browser default download folder" option
 const DEFAULT_FOLDER_VALUE = "";
 
-// an absolute path can't be passed to chrome.downloads directly; it has to go
-// through the save-as dialog (which remembers its last location)
-function isAbsolutePath(folder: string): boolean {
-    return /^[a-zA-Z]:[\\/]/u.test(folder) || folder.startsWith("/");
-}
-
-function choiceForFolder(folder: string): PickerChoice {
+// a folder that stays absolute after relativization lives outside the
+// default download dir and has to go through the OS save-as dialog
+async function choiceForFolder(folder: string): Promise<PickerChoice> {
     if (folder.length === 0) {
         return {};
     }
-    return isAbsolutePath(folder) ? { saveAs: true } : { folder };
+    const relative = await relativizeFolder(folder);
+    return relative === folder ? { saveAs: true } : { folder: relative };
 }
 
 function basenameFromUrl(url: string): string {
@@ -49,7 +50,8 @@ export async function showDownloadPicker(
     insertPickerCss();
 
     // history (most recent first) merged with configured quick folders,
-    // deduped, most recent still on top
+    // deduped, most recent still on top. Displayed exactly as stored: the
+    // user picks what they see. Path conversion happens at download time.
     const history = await readFolderHistory();
     const folders = [
         ...history,
@@ -137,7 +139,7 @@ export async function showDownloadPicker(
         download.disabled = false;
         download.addEventListener("click", (event) => {
             event.stopPropagation();
-            settle(choiceForFolder(select.value));
+            void choiceForFolder(select.value).then((choice) => settle(choice));
         });
         actions.appendChild(download);
 
@@ -162,7 +164,9 @@ export async function showDownloadPicker(
                 settle(null);
             } else if (event.key === "Enter") {
                 event.stopPropagation();
-                settle(choiceForFolder(select.value));
+                void choiceForFolder(select.value).then((choice) =>
+                    settle(choice)
+                );
             }
         };
         const onOverlayClick = (event: MouseEvent): void => {
