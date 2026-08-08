@@ -29,8 +29,12 @@ export function passesSizeRestrictions(
     image: HTMLImageElement,
     settings: Settings
 ): boolean {
+    // naturalWidth/Height are the real pixel size; rendered width can be
+    // small (e.g. thumbnails on Pinterest) and would wrongly block downloads
+    const naturalWidth = image.naturalWidth || image.width;
+    const naturalHeight = image.naturalHeight || image.height;
     return (
-        image.width > settings.minimumImageSize &&
-        image.height > settings.minimumImageSize
+        naturalWidth >= settings.minimumImageSize &&
+        naturalHeight >= settings.minimumImageSize
     );
 }

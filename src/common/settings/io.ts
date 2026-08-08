@@ -51,7 +51,7 @@ const spec = {
     ),
     fileNamePattern: str(FilenameVariables.inferred, notBlank),
     greyOut: bool(true),
-    minimumImageSize: num(100, Number.isInteger, gte(1)),
+    minimumImageSize: num(20, Number.isInteger, gte(1)),
     notify: bool(false),
     onFilenameConflict: stringEnum(ConflictAction, ConflictAction.autoUnique),
     oneClickStyle: stringEnum(HoverButtonSkin, HoverButtonSkin.alt1),
