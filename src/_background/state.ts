@@ -14,9 +14,12 @@ export const notifications = new Map<string, number>();
 // the registry must survive service-worker sleeps, so it is persisted too
 async function readRegistry(): Promise<Record<string, unknown>> {
     try {
-        return (await browser.storage.local.get(DOWNLOADS_KEY))[
+        const stored = (await browser.storage.local.get(DOWNLOADS_KEY))[
             DOWNLOADS_KEY
-        ] as Record<string, unknown>;
+        ];
+        return typeof stored == "object" && stored != null
+            ? (stored as Record<string, unknown>)
+            : {};
     } catch {
         return {};
     }

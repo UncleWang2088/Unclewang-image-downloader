@@ -1,4 +1,4 @@
-import { DOMAIN_NAME_FILTER_PATTERN, Settings, load, write } from "../common";
+import { DOMAIN_NAME_FILTER_PATTERN, Settings, write } from "../common";
 
 const excludedPageDomains = document.getElementById(
     "excludedPageDomains"
@@ -51,17 +51,6 @@ function rigExcludedPageDomains(settings: Settings): void {
                 .filter((line) => DOMAIN_NAME_FILTER_PATTERN.test(line)),
         }).catch(console.error);
     });
-
-    // update display in case filtering changes value
-    excludedPageDomains.addEventListener("blur", () => {
-        load()
-            .then(
-                (liveSettings) =>
-                    (excludedPageDomains.value =
-                        liveSettings.excludedPageDomains.join("\n"))
-            )
-            .catch(console.error);
-    });
 }
 
 function riginvertExcludedPageDomains(settings: Settings): void {
@@ -87,17 +76,6 @@ function rigExcludedImageDomains(settings: Settings): void {
                 .split("\n")
                 .filter((line) => DOMAIN_NAME_FILTER_PATTERN.test(line)),
         }).catch(console.error);
-    });
-
-    // update display in case filtering changes value
-    excludedSourceDomains.addEventListener("blur", () => {
-        load()
-            .then(
-                (liveSettings) =>
-                    (excludedSourceDomains.value =
-                        liveSettings.excludedSourceDomains.join("\n"))
-            )
-            .catch(console.error);
     });
 }
 

@@ -57,6 +57,7 @@ function setPosition(settings: Settings): void {
 
 function insert(): void {
     document.addEventListener("scroll", alignToAnchor);
+    window.addEventListener("resize", alignToAnchor);
     element.insert();
 }
 
@@ -72,6 +73,7 @@ export function remove(): void {
     if (element.isInserted()) {
         element.unsert();
         document.removeEventListener("scroll", alignToAnchor);
+        window.removeEventListener("resize", alignToAnchor);
         anchor = null;
     }
 }

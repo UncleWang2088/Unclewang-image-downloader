@@ -50,7 +50,19 @@ async function reactToMessage(
 }
 
 export function listenForMessages(): void {
-    browser.runtime.onMessage.addListener(async (data: unknown, sender) =>
-        reactToMessage(asMessage(data), sender)
-    );
+    browser.runtime.onMessage.addListener(async (data: unknown, sender) => {
+        let message: Message;
+        try {
+            message = asMessage(data);
+        } catch {
+            // 不是发给本扩展的消息（例如其他扩展发来的），静默忽略
+            return undefined;
+        }
+
+        return reactToMessage(message, sender).catch((error) => {
+            // eslint-disable-next-line no-console
+            console.error("[王叔图片下载] 处理消息失败:", error);
+            return undefined;
+        });
+    });
 }

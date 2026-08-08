@@ -97,20 +97,36 @@ const detectRightClick: (
     settings: Settings,
     event: MouseEvent
 ) => Promise<void> = (() => {
+    // 双击右键状态机：0 表示"不在等待第二次右键"。
     let lastRightClickTime = 0;
 
     return async (settings: Settings, event: MouseEvent) => {
-        if (isRightClick(event)) {
-            const now = Date.now();
-            const previousRightClick = lastRightClickTime;
-            lastRightClickTime = now;
+        if (!isRightClick(event)) {
+            return;
+        }
 
-            if (
-                settings.triggerByClickType === ClickType.singleRight ||
-                now - previousRightClick < settings.doubleRightClickMillis
-            ) {
-                await downloadClickedImage(settings, event);
-            }
+        const now = Date.now();
+
+        if (settings.triggerByClickType === ClickType.singleRight) {
+            // 单击右键模式：每次都触发下载
+            await downloadClickedImage(settings, event);
+            return;
+        }
+
+        // doubleRight 模式：第一次右键只记录时间；
+        // 第二次右键落在判定窗口内才触发下载，并重置状态，
+        // 避免连续点击（例如连点 3 次）被当作多次双击、重复下载。
+        if (lastRightClickTime === 0) {
+            lastRightClickTime = now;
+            return;
+        }
+
+        if (now - lastRightClickTime < settings.doubleRightClickMillis) {
+            lastRightClickTime = 0;
+            await downloadClickedImage(settings, event);
+        } else {
+            // 间隔超过窗口，视为新的一次单击，重新计时
+            lastRightClickTime = now;
         }
     };
 })();

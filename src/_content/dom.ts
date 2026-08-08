@@ -1,3 +1,5 @@
+import { HTML_BUTTON_ID } from "./hoverbutton/skinning";
+
 export function isImage(element: Element): element is HTMLImageElement {
     return element.nodeName === "IMG";
 }
@@ -20,11 +22,13 @@ export function findNearestImage(element: Element): HTMLImageElement | null {
     }
 
     const bg = getComputedStyle(element).backgroundImage;
-    if (bg !== "none" && bg.includes("url(")) {
-        const match = /url\((?:"?)(?<url>[^"')]+)(?:"?)\)/u.exec(bg);
-        if (match?.groups != null) {
+    // 跳过悬浮下载按钮自身：它的背景图是扩展皮肤图标，不是要下载的图片
+    if (bg !== "none" && bg.includes("url(") && element.id !== HTML_BUTTON_ID) {
+        const match = /url\(["']?(?<url>[^"')]+)["']?\)/u.exec(bg);
+        const url = match?.groups?.url?.trim();
+        if (url != null && url.length > 0) {
             const image = document.createElement("img");
-            image.src = match.groups.url ?? "";
+            image.src = url;
             return image;
         }
     }

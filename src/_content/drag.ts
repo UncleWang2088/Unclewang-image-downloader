@@ -16,7 +16,8 @@ function clearDragged(): void {
 
 async function send(): Promise<void> {
     if (dragged == null) {
-        throw new Error("how did you drop without dragging?");
+        // 不是拖图片触发的 drop（例如拖动文本/链接），忽略即可
+        return;
     }
 
     const relevantImage = findNearestImage(dragged);

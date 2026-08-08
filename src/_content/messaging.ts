@@ -1,5 +1,5 @@
-import { Message, TriggeredMessage, asMessage } from "../common";
-import { completeDownload, startDownload } from "./downloads";
+import { Message, TriggeredMessage, asMessage, load } from "../common";
+import { completeDownload, downloadImage } from "./downloads";
 import { downloadHoveredImage } from "./hotkey";
 import { getImagesInSelection } from "./selection";
 import browser from "webextension-polyfill";
@@ -13,13 +13,23 @@ async function reactToMessage(
                 "download start message should have been handled inline"
             );
 
-        case "getImagesInSelection":
-            await Promise.all(
-                getImagesInSelection().map(async (image) =>
-                    startDownload(image)
-                )
-            );
+        case "getImagesInSelection": {
+            // 走 downloadImage 统一入口，否则会绕过"下载前询问保存位置"
+            const settings = await load();
+            const images = getImagesInSelection();
+
+            if (settings.askWhereToSave) {
+                // 需要弹目录选择器时逐个确认，避免多个弹窗互相重叠
+                for (const image of images) {
+                    await downloadImage(image, settings);
+                }
+            } else {
+                await Promise.all(
+                    images.map((image) => downloadImage(image, settings))
+                );
+            }
             return;
+        }
 
         case "downloadFinished":
             completeDownload(msg);

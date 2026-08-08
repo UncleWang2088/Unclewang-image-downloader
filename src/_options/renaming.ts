@@ -170,7 +170,7 @@ export function rigRenaming(settings: Settings): void {
     applyDisabledState();
 
     if (fileNamingSupport() == null) {
-        notSupported.classList.remove("display-none");
+        notSupported.classList.remove("hidden");
 
         for (const input of renamingSettings.getElementsByTagName("input")) {
             input.disabled = true;
