@@ -2,6 +2,7 @@ import {
     SuggestionCallback,
     fileNamingSupport,
     finished,
+    getDefaultDownloadDir,
     load,
     pushFolderHistory,
     relativizeFolder,
@@ -60,15 +61,35 @@ async function handleEndOfDownload(
             const [downloadItem] = await browser.downloads.search({
                 id: delta.id,
             });
+            // eslint-disable-next-line no-console
+            console.info(
+                "[王叔图片下载] 下载完成 | id:",
+                delta.id,
+                "| filename:",
+                downloadItem?.filename,
+                "| source[2]:",
+                source[2]
+            );
             if (downloadItem != null && source[2] == null) {
                 const folder = folderOf(downloadItem.filename);
+                // eslint-disable-next-line no-console
+                console.info("[王叔图片下载] 提取目录:", folder);
                 if (folder != null) {
                     // remember as a relative path when possible so the next
                     // download goes straight there without the save-as dialog;
-                    // the default download dir itself is not worth remembering
-                    const relative = await relativizeFolder(folder);
+                    // the default download dir itself is not worth remembering.
+                    // pass the probe function explicitly: the default query
+                    // sends a message that would loop back to this SW
+                    const relative = await relativizeFolder(
+                        folder,
+                        getDefaultDownloadDir
+                    );
+                    // eslint-disable-next-line no-console
+                    console.info("[王叔图片下载] 相对化:", relative);
                     if (relative.length > 0) {
                         await pushFolderHistory(relative);
+                        // eslint-disable-next-line no-console
+                        console.info("[王叔图片下载] 已记录历史:", relative);
                     }
                 }
             }
