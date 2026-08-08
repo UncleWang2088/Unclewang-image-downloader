@@ -1,8 +1,4 @@
-import {
-    type Settings,
-    readFolderHistory,
-    relativizeFolder,
-} from "../../common";
+import { type Settings, readFolderHistory } from "../../common";
 import { CSS_IDS, insertPickerCss } from "./style";
 
 const { OVERLAY_ID, PANEL_ID } = CSS_IDS;
@@ -15,14 +11,15 @@ let activeSettle: ((choice: PickerChoice | null) => void) | null = null;
 // value used for the "browser default download folder" option
 const DEFAULT_FOLDER_VALUE = "";
 
-// a folder that stays absolute after relativization lives outside the
-// default download dir and has to go through the OS save-as dialog
-async function choiceForFolder(folder: string): Promise<PickerChoice> {
+// absolute paths can't be passed to chrome.downloads directly; route them
+// through the save-as dialog. relative subfolders download straight away.
+function choiceForFolder(folder: string): PickerChoice {
     if (folder.length === 0) {
         return {};
     }
-    const relative = await relativizeFolder(folder);
-    return relative === folder ? { saveAs: true } : { folder: relative };
+    const isAbsolute =
+        /^[a-zA-Z]:[\\/]/u.test(folder) || folder.startsWith("/");
+    return isAbsolute ? { saveAs: true } : { folder };
 }
 
 function basenameFromUrl(url: string): string {
@@ -139,7 +136,7 @@ export async function showDownloadPicker(
         download.disabled = false;
         download.addEventListener("click", (event) => {
             event.stopPropagation();
-            void choiceForFolder(select.value).then((choice) => settle(choice));
+            settle(choiceForFolder(select.value));
         });
         actions.appendChild(download);
 
@@ -164,9 +161,7 @@ export async function showDownloadPicker(
                 settle(null);
             } else if (event.key === "Enter") {
                 event.stopPropagation();
-                void choiceForFolder(select.value).then((choice) =>
-                    settle(choice)
-                );
+                settle(choiceForFolder(select.value));
             }
         };
         const onOverlayClick = (event: MouseEvent): void => {
