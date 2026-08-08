@@ -4,3 +4,4 @@ dist_bak/
 dist_bak_extra/
 .parcel-cache/
 *.zip
+release/
