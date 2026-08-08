@@ -21,11 +21,12 @@ async function reactToMessage(
             if (settings.askWhereToSave) {
                 // 需要弹目录选择器时逐个确认，避免多个弹窗互相重叠
                 for (const image of images) {
+                    // eslint-disable-next-line no-await-in-loop
                     await downloadImage(image, settings);
                 }
             } else {
                 await Promise.all(
-                    images.map((image) => downloadImage(image, settings))
+                    images.map(async (image) => downloadImage(image, settings))
                 );
             }
             return;

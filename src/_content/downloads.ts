@@ -20,7 +20,7 @@ function markAsDownloading(
     downloadingImages.set(message.downloadId, image);
 }
 
-export async function startDownload(
+async function startDownload(
     image: HTMLImageElement,
     choice?: PickerChoice
 ): Promise<void> {

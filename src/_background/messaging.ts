@@ -51,7 +51,7 @@ async function reactToMessage(
 
 export function listenForMessages(): void {
     browser.runtime.onMessage.addListener(async (data: unknown, sender) => {
-        let message: Message;
+        let message: Message | null = null;
         try {
             message = asMessage(data);
         } catch {

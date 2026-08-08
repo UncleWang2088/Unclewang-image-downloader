@@ -14,9 +14,10 @@ export const notifications = new Map<string, number>();
 // the registry must survive service-worker sleeps, so it is persisted too
 async function readRegistry(): Promise<Record<string, unknown>> {
     try {
-        const stored = (await browser.storage.local.get(DOWNLOADS_KEY))[
+        const result = (await browser.storage.local.get(
             DOWNLOADS_KEY
-        ];
+        )) as Record<string, unknown>;
+        const stored = result[DOWNLOADS_KEY];
         return typeof stored == "object" && stored != null
             ? (stored as Record<string, unknown>)
             : {};
@@ -28,8 +29,13 @@ async function readRegistry(): Promise<Record<string, unknown>> {
 async function writeRegistry(registry: Record<string, unknown>): Promise<void> {
     try {
         await browser.storage.local.set({ [DOWNLOADS_KEY]: registry });
-    } catch {
-        // non-fatal
+        // eslint-disable-next-line no-console
+        console.info(
+            `[王叔图片下载] 注册表已写入: ${JSON.stringify(registry)}`
+        );
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("[王叔图片下载] 注册表写入失败:", error);
     }
 }
 
@@ -40,7 +46,8 @@ export async function registerDownload(
 ): Promise<void> {
     downloads.set(id, source);
     const registry = await readRegistry();
-    registry[id] = source;
+    // normalize undefined folder to null so the array is JSON-serializable
+    registry[id] = source.map((part) => part ?? null);
     await writeRegistry(registry);
 }
 
@@ -53,7 +60,16 @@ export async function getDownload(id: number): Promise<TabAndFrameId | null> {
     const registry = await readRegistry();
     const stored = registry[id];
     if (Array.isArray(stored)) {
-        const source = stored as TabAndFrameId;
+        const [tabId, frameId, folder] = stored as [
+            number,
+            number | null,
+            string | null
+        ];
+        const source: TabAndFrameId = [
+            tabId,
+            frameId,
+            folder == null ? undefined : folder,
+        ];
         downloads.set(id, source);
         return source;
     }
