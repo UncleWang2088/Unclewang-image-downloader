@@ -22,6 +22,11 @@ load()
         if (settings.minimumImageSize > 20) {
             await write({ minimumImageSize: 20 });
         }
+        // default download dir may have changed in Chrome settings; drop the
+        // cached probe result so the next download re-probes it
+        await browser.storage.local
+            .remove("did:default-download-dir")
+            .catch(() => undefined);
         // eslint-disable-next-line no-console
         console.info(
             `[王叔图片下载 v${version}] content script 已加载 | askWhereToSave =`,
