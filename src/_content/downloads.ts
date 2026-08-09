@@ -112,11 +112,12 @@ export async function retryViaCanvas(
     const sourceUrl = image.currentSrc || image.src;
     try {
         let blob: Blob | null = null;
-        // First try: fetch in the page context (carries cookies/Referer so
-        // sites like huaban.com will serve the image; may still fail under
-        // strict CORS but works on most anti-hotlinking setups)
+        // First try: fetch in the page context. credentials must be 'omit'
+        // because most anti-hotlinking CDNs (e.g. huaban.com) return CORS
+        // headers without 'Access-Control-Allow-Credentials: true' — using
+        // 'include' would be rejected by the browser.
         try {
-            const res = await fetch(sourceUrl, { credentials: "include" });
+            const res = await fetch(sourceUrl, { credentials: "omit" });
             if (res.ok) {
                 blob = await res.blob();
             }
