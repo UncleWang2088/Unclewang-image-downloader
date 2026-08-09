@@ -3,6 +3,7 @@ import {
     fileNamingSupport,
     finished,
     getDefaultDownloadDir,
+    isAbsolutePath,
     load,
     pushFolderHistory,
     relativizeFolder,
@@ -86,7 +87,11 @@ async function handleEndOfDownload(
                     );
                     // eslint-disable-next-line no-console
                     console.info("[王叔图片下载] 相对化:", relative);
-                    if (relative.length > 0) {
+                    // only remember folders that can be downloaded straight
+                    // away (relative = inside the default download dir); an
+                    // absolute path outside it would always open the save-as
+                    // dialog again, which only annoys the user
+                    if (relative.length > 0 && !isAbsolutePath(relative)) {
                         await pushFolderHistory(relative);
                         // eslint-disable-next-line no-console
                         console.info("[王叔图片下载] 已记录历史:", relative);
