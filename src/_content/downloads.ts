@@ -93,9 +93,10 @@ function requestDownloadForUrl(
 
 /**
  * A download failed (e.g. huaban's auth_key expired by the time the browser
- * fetched the URL). The browser already decoded the image though - draw it
- * onto a canvas and download the resulting blob instead, bypassing the
- * network entirely.
+ * fetched the URL). Try fetching the image directly from the content
+ * script context — this carries the page's session so an anti-hotlinking
+ * site like huaban.com that checks cookies/Referer will serve it. Fall
+ * back to canvas if that also fails.
  */
 export async function retryViaCanvas(
     message: DownloadChangedMessage
@@ -107,25 +108,51 @@ export async function retryViaCanvas(
     image.classList.remove(activeClass);
     downloadingImages.delete(message.downloadId);
     // eslint-disable-next-line no-console
-    console.info("[王叔图片下载] 下载失败，尝试 canvas 兜底");
+    console.info("[王叔图片下载] 下载失败，尝试 fetch 兜底");
+    const sourceUrl = image.currentSrc || image.src;
     try {
-        if (image.naturalWidth === 0 || !image.complete) {
+        let blob: Blob | null = null;
+        // First try: fetch in the page context (carries cookies/Referer so
+        // sites like huaban.com will serve the image; may still fail under
+        // strict CORS but works on most anti-hotlinking setups)
+        try {
+            const res = await fetch(sourceUrl, { credentials: "include" });
+            if (res.ok) {
+                blob = await res.blob();
+            }
+        } catch (error) {
             // eslint-disable-next-line no-console
-            console.info("[王叔图片下载] 图片未完全加载，无法 canvas 兜底");
-            return;
+            console.info(
+                "[王叔图片下载] fetch 兜底失败:",
+                (error as Error).message
+            );
         }
-        const canvas = document.createElement("canvas");
-        canvas.width = image.naturalWidth;
-        canvas.height = image.naturalHeight;
-        const ctx = canvas.getContext("2d");
-        if (ctx == null) {
-            return;
+        // Fallback: canvas (works only when the image is not tainted, i.e.
+        // the server served CORS headers; we still try in case the fetch
+        // failed for a different reason)
+        if (blob == null && image.naturalWidth > 0 && image.complete) {
+            try {
+                const canvas = document.createElement("canvas");
+                canvas.width = image.naturalWidth;
+                canvas.height = image.naturalHeight;
+                const ctx = canvas.getContext("2d");
+                if (ctx != null) {
+                    ctx.drawImage(image, 0, 0);
+                    blob = await new Promise<Blob | null>((resolve) => {
+                        canvas.toBlob(resolve, "image/png");
+                    });
+                }
+            } catch (error) {
+                // eslint-disable-next-line no-console
+                console.info(
+                    "[王叔图片下载] canvas 兜底失败:",
+                    (error as Error).message
+                );
+            }
         }
-        ctx.drawImage(image, 0, 0);
-        const blob = await new Promise<Blob | null>((resolve) => {
-            canvas.toBlob(resolve, "image/png");
-        });
         if (blob == null) {
+            // eslint-disable-next-line no-console
+            console.info("[王叔图片下载] 兜底都失败，放弃");
             return;
         }
         const url = URL.createObjectURL(blob);
@@ -133,11 +160,10 @@ export async function retryViaCanvas(
             .sendMessage(requestDownloadForUrl(url))
             .then(asMessage);
         // eslint-disable-next-line no-console
-        console.info("[王叔图片下载] canvas 兜底下载结果:", response.subject);
-        // revoke once the download has started
+        console.info("[王叔图片下载] 兜底下载结果:", response.subject);
         setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (error) {
         // eslint-disable-next-line no-console
-        console.error("[王叔图片下载] canvas 兜底失败:", error);
+        console.error("[王叔图片下载] 兜底流程失败:", error);
     }
 }
