@@ -1,5 +1,6 @@
 import {
     SuggestionCallback,
+    failed,
     fileNamingSupport,
     finished,
     getDefaultDownloadDir,
@@ -116,6 +117,14 @@ async function handleEndOfDownload(
             if (download == null || download.error === "USER_CANCELED") {
                 indicateFinished(source, delta);
             } else {
+                // let the content script know so it can retry via canvas
+                // (e.g. huaban auth_key expired by the time we download)
+                const [tabId, frameId] = source;
+                browser.tabs
+                    .sendMessage(tabId, failed(delta.id), {
+                        frameId: frameId ?? undefined,
+                    })
+                    .catch(() => undefined);
                 await notifyFailure(download);
             }
 

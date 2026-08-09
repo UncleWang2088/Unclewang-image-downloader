@@ -10,6 +10,7 @@ export function signal<T extends (typeof signals)[number]>(
 
 const topics = {
     afterHotkeyTriggered: "afterHotkeyTriggered",
+    downloadFailed: "downloadFailed",
     downloadFinished: "downloadFinished",
     downloadRequested: "downloadRequested",
     downloadStarted: "downloadStarted",
@@ -17,7 +18,10 @@ const topics = {
 } as const;
 
 export type DownloadChangedMessage = {
-    subject: typeof topics.downloadFinished | typeof topics.downloadStarted;
+    subject:
+        | typeof topics.downloadFailed
+        | typeof topics.downloadFinished
+        | typeof topics.downloadStarted;
     downloadId: number;
 };
 
@@ -35,6 +39,13 @@ export function finished(downloadId: number): DownloadChangedMessage {
     };
 }
 
+export function failed(downloadId: number): DownloadChangedMessage {
+    return {
+        downloadId,
+        subject: topics.downloadFailed,
+    };
+}
+
 type RequestedMessage = {
     subject: typeof topics.downloadRequested;
     imageUrl: string;
@@ -42,30 +53,12 @@ type RequestedMessage = {
     saveAs?: boolean;
 };
 
-// huaban.com serves images behind short-lived auth_key signed URLs; the
-// thumbnail URL in src/currentSrc works but is tiny. Upgrading the size
-// suffix to _fw1200 yields the full-resolution image using the same key.
-function huabanFullImageUrl(url: string): string {
-    if (!url.includes("huaban.com")) {
-        return url;
-    }
-    // replace the size suffix (e.g. _sq75webp, _fw658webp) with _fw1200,
-    // keeping any query string (auth_key) intact
-    return url.replace(
-        /_[a-z0-9]*(?:webp|png|jpg|jpeg)(?=[?&]|$)/iu,
-        "_fw1200"
-    );
-}
-
 export function requestDownload(
     image: HTMLImageElement,
     options?: { folder?: string; saveAs?: boolean }
 ): RequestedMessage {
-    // currentSrc is the URL the browser actually loaded (carries any
-    // auth_key/signature), unlike src which may be a placeholder
-    const loaded = image.currentSrc || image.src;
     return {
-        imageUrl: huabanFullImageUrl(loaded),
+        imageUrl: image.src,
         subject: topics.downloadRequested,
         ...(options?.folder != null && options.folder.length > 0
             ? { folder: options.folder }

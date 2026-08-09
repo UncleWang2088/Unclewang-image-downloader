@@ -82,3 +82,62 @@ export function completeDownload(message: DownloadChangedMessage): void {
     image.classList.remove(activeClass);
     downloadingImages.delete(message.downloadId);
 }
+
+function requestDownloadForUrl(
+    url: string
+): ReturnType<typeof requestDownload> {
+    const img = new Image();
+    img.src = url;
+    return requestDownload(img);
+}
+
+/**
+ * A download failed (e.g. huaban's auth_key expired by the time the browser
+ * fetched the URL). The browser already decoded the image though - draw it
+ * onto a canvas and download the resulting blob instead, bypassing the
+ * network entirely.
+ */
+export async function retryViaCanvas(
+    message: DownloadChangedMessage
+): Promise<void> {
+    const image = downloadingImages.get(message.downloadId);
+    if (image == null) {
+        return;
+    }
+    image.classList.remove(activeClass);
+    downloadingImages.delete(message.downloadId);
+    // eslint-disable-next-line no-console
+    console.info("[王叔图片下载] 下载失败，尝试 canvas 兜底");
+    try {
+        if (image.naturalWidth === 0 || !image.complete) {
+            // eslint-disable-next-line no-console
+            console.info("[王叔图片下载] 图片未完全加载，无法 canvas 兜底");
+            return;
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = image.naturalWidth;
+        canvas.height = image.naturalHeight;
+        const ctx = canvas.getContext("2d");
+        if (ctx == null) {
+            return;
+        }
+        ctx.drawImage(image, 0, 0);
+        const blob = await new Promise<Blob | null>((resolve) => {
+            canvas.toBlob(resolve, "image/png");
+        });
+        if (blob == null) {
+            return;
+        }
+        const url = URL.createObjectURL(blob);
+        const response = await browser.runtime
+            .sendMessage(requestDownloadForUrl(url))
+            .then(asMessage);
+        // eslint-disable-next-line no-console
+        console.info("[王叔图片下载] canvas 兜底下载结果:", response.subject);
+        // revoke once the download has started
+        setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("[王叔图片下载] canvas 兜底失败:", error);
+    }
+}

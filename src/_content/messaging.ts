@@ -1,5 +1,5 @@
 import { Message, TriggeredMessage, asMessage, load } from "../common";
-import { completeDownload, downloadImage } from "./downloads";
+import { completeDownload, downloadImage, retryViaCanvas } from "./downloads";
 import { downloadHoveredImage } from "./hotkey";
 import { getImagesInSelection } from "./selection";
 import browser from "webextension-polyfill";
@@ -34,6 +34,10 @@ async function reactToMessage(
 
         case "downloadFinished":
             completeDownload(msg);
+            return;
+
+        case "downloadFailed":
+            await retryViaCanvas(msg);
             return;
 
         case "downloadRequested":
